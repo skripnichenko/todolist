@@ -1,24 +1,51 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import List from './components/List';
+import Navbar from './components/Navbar';
+import TodoForm from './components/TodoForm';
+import { IAddToList } from './interfaces';
 
-function App() {
+
+const App: React.FC = () => {
+  const [list, setList] = useState<IAddToList[]>([]);
+  const addToList = (title: string) => {
+    const newTodo: IAddToList = {
+      title,
+      id: Date.now(),
+      completed: false
+    }
+    if (newTodo.title.length >= 1) {
+      setList(prev => [newTodo, ...prev])
+    }
+  }
+  const onChangeChecked = (id: number) => {
+    setList(prev => prev.map(el => {
+      if (el.id === id) {
+        el.completed = !el.completed
+      }
+      return el;
+    }))
+  }
+  const removeTodo = (id: number) => {
+    setList(prev => prev.filter(el => el.id !== id))
+  }
+
+  useEffect(() => {
+    const savedList = JSON.parse(localStorage.getItem('list') || '[]') as IAddToList[];
+    setList(savedList);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('list', JSON.stringify(list));
+  }, [list])
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <Navbar />
+      <div className='container' >
+        <TodoForm addToList={addToList} />
+        <List onChangeChecked={onChangeChecked} removeTodo={removeTodo} list={list} />
+      </div>
+
     </div>
   );
 }
